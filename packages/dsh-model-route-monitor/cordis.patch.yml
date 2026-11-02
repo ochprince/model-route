@@ -1,0 +1,7 @@
+# The ModelRoute economy monitor bundle patch: one Host row carries both the
+# usage collector and the browser half declared through package.json dsh.client.
+# Automatic prices come from data/prices.json. A profile override can carry
+# manual prices (autoPrices: false) and is what "Open config file" edits.
+- insert:
+    - id: model-route-monitor
+      name: "@jiangshilong/dsh-model-route-monitor"

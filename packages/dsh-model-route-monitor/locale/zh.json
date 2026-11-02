@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "ModelRoute 成本监控",
+    "description": "右栏实时查看 Opus/Sonnet/Haiku 档位用量，以及相对全部使用 Opus 的成本节省。"
+  }
+}
