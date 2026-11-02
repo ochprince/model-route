@@ -142,9 +142,8 @@ A judgment runs at exactly three points, and nowhere else:
 | **Delegation** (`route_tier`) | A subagent task deserves its own tier, independent of this conversation's size. |
 
 Tool continuations inside a turn do **not** re-judge. That is deliberate: one model per turn
-keeps the provider's prefix cache warm, and in-turn "the task may have changed" signals
-(tool-call counts, context growth) measured out to zero tier changes while costing a judge call
-each time.
+keeps the provider's prefix cache warm, and in-turn signals such as tool-call counts or context
+growth describe how much work has happened — not how hard it is.
 
 ### What the judge sees
 
@@ -159,11 +158,13 @@ Only what the decision needs — the request, the earlier user messages, and the
 ```
 
 Not the assistant's answers, not tool input/output, not the agent's system prompt, and no
-regex-derived flags. Each of those competes with the request for the judge's attention without
-telling it how hard the request is — long assistant replies used to be 72% of the payload.
+derived flags. Each of those competes with the request for the judge's attention without
+telling it how hard the request is.
 
 The prompt states principles (what raises required capability, what lowers it, how to weigh
-history) rather than enumerating scenarios. Read it: [`docs/judge-prompt.md`](docs/judge-prompt.md).
+history) rather than enumerating scenarios. Read it — with the measurements behind these
+choices — in [`docs/judge-prompt.md`](docs/judge-prompt.md) and
+[`docs/design-notes.md`](docs/design-notes.md).
 
 ### The verdict is final
 

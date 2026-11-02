@@ -27,17 +27,17 @@ A decision is made at exactly three nodes, and nowhere else:
 
 Tool continuations inside a turn do **not** judge: one model serves the whole turn, so the provider's prefix KV cache keeps hitting.
 
-### Why tool failures, tool counts, and context growth were removed
+### Why judgment is not finer-grained
 
-Those three signals once existed as in-turn "stage boundaries". They are gone. Measured over 194 real routing records, they fired 14 times and **changed the tier 0 times**, while costing 16.3 seconds of judge latency.
+A judgment per model call — or per N tool calls — sounds more precise. It is not:
 
-The root problem is that they are proxies for **scale**, not evidence of a **task change**:
+- **Scale is not difficulty.** A turn that has run eight tool calls is *long*, not *harder*; the request the judge classified has not changed.
+- **It fires at the most expensive moment.** By then the context is at its largest, so a tier change rebuilds the biggest possible prefix cache.
+- **A failed tool call is in-turn evidence.** `turnFreeze` already keeps one model for the turn; whether a failed attempt deserves a stronger tier is decided at the next turn, from the user's own wording.
 
-- "Eight tool calls" means the task is *long*, not that it got *harder*; the task description the judge saw at turn start has not changed.
-- They fire at the worst possible moment: after eight tool calls the context is 100k+ tokens, so a tier change there rebuilds the largest possible prefix cache.
-- A failed tool result *is* semantic evidence, but it is in-turn evidence, and `turnFreeze` keeps one model for the turn. Whether a failed attempt justifies a stronger tier is decided at the next turn by the judge, from the user's own wording.
+For a judgment per request instead of per turn, set `cache.turnFreeze: false` — the cost is losing prefix-cache reuse.
 
-For finer granularity, set `cache.turnFreeze: false`: every request re-judges, at the cost of losing prefix-cache reuse.
+The measurements behind this choice are recorded in [design notes](../../docs/design-notes.md).
 
 ## Delegation-time routing
 
@@ -201,7 +201,7 @@ Set `log.enabled: true` and the gateway appends decisions and results to JSONL (
 {"kind":"route","turn":"3f9a1c2e","alias":"auto","tier":"sonnet","source":"judge","upstream":{"provider":"aiapi","model":"glm-5.3-flash"},"confidence":0.61,"probabilities":{"haiku":0.12,"sonnet":0.72,"opus":0.16},"topAlternative":"opus","margin":0.56,"task":"…","reason":"…","judgeMs":2608,"preview":"continue"}
 ```
 
-`source` says where the tier came from: `judge`, `memo` (prefix memo), `frozen` (same turn), `fallback` (judge failed or found no tier), `fixed` (explicit tier or no judge configured), `auxiliary`. Older log lines may still carry `hold` / `escalate` from the removed deterministic floor; the monitor renders them correctly.
+`source` says where the tier came from: `judge`, `memo` (prefix memo), `frozen` (same turn), `fallback` (judge failed or found no tier), `fixed` (explicit tier or no judge configured), `auxiliary`.
 
 ```bash
 # is the judge failing all the time?

@@ -24,7 +24,7 @@ Open the monitor with the chart icon in the Session header, or from the right-si
 
 ## Layout and one-click config
 
-The panel is now a single-column, scrollable view: a fixed summary header above the overview, tier rows, sessions, and recent decisions. Tier cards use the full row width with larger type and a thick share meter; sessions show the first four and recent decision rows the first six, with **Show all** to expand, so the panel does not become a wall of tiny text. Typography follows a report layout: serif display headings and metric values, monospaced uppercase micro-labels, roomier card padding, and wide spacing between blocks.
+The panel is a single-column, scrollable view: a fixed summary header above the overview, tier rows, sessions, and recent decisions. Tier cards use the full row width with larger type and a thick share meter; sessions show the first four and recent decision rows the first six, with **Show all** to expand, so the panel does not become a wall of tiny text. Typography follows a report layout: serif display headings and metric values, monospaced uppercase micro-labels, roomier card padding, and wide spacing between blocks.
 
 Prices default to **Auto**: the monitor reads its bundled `data/prices.json`, resolves the current tier models, and applies the new prices on the next two-second refresh when a gateway slot changes. No profile edit is needed. **Edit prices** sits in the **Tier usage** header and opens an inline panel with the **Auto / Manual** switch as its first row.
 
