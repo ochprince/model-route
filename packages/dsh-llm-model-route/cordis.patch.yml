@@ -1,0 +1,18 @@
+# The model-route bundle patch: inserts the gateway plugin entry with neutral
+# defaults. Applied when this package is listed in a profile's
+# `dsh.profile.bundles`; when installed manually, add the equivalent rows to
+# the profile's own cordis.patch.yml (see examples/cordis.patch.snippet.yml).
+#
+# The gateway needs the standard model-management engine for upstream routes
+# (dsh-llm + dsh-llm-pi-ai ship in @deepseek-ai/dsh-base); tier mappings point
+# at provider routes declared there, e.g. `aiapi`.
+- insert:
+    - id: llm-model-route
+      name: "@jiangshilong/dsh-llm-model-route"
+      config:
+        route: model-route
+        displayName: ModelRoute 智能模型路由
+        tiers: {}
+        enableRouter: jev
+        router: {}
+        fallbackTier: sonnet

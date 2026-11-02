@@ -1,0 +1,38 @@
+{
+  "name": "@jiangshilong/dsh-llm-model-route",
+  "description": "ModelRoute: smart model routing for the DeepSeek Harness. Maps opus/sonnet/haiku tiers onto any upstream models and lets a judge (decision) model pick the tier per user turn, per stage boundary, or per model call, with HiRoute-style frozen decisions, prefix memo reuse, and bounded failover.",
+  "version": "0.2.0",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json",
+    "./cordis.patch.yml": "./cordis.patch.yml"
+  },
+  "files": [
+    "cordis.patch.yml",
+    "lib/delegate.js",
+    "lib/index.js",
+    "lib/jev.js",
+    "lib/judges.js",
+    "lib/plan.js",
+    "lib/util.js"
+  ],
+  "license": "Apache-2.0",
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "~4.0.4",
+    "@deepseek-ai/dsh-credentials": ">=0.2.0-rc.2 <0.3.0",
+    "@deepseek-ai/dsh-launch-environment": ">=0.2.0-rc.2 <0.3.0",
+    "@deepseek-ai/dsh-llm": ">=0.2.0-rc.2 <0.3.0",
+    "@deepseek-ai/schemastery": "~3.18.4",
+    "@deepseek-ai/dsh-tools": ">=0.2.0-rc.2 <0.3.0"
+  },
+  "engines": {
+    "dsh": ">=0.2.0-rc.2 <0.3.0"
+  }
+}

@@ -1,0 +1,68 @@
+# ModelRoute 配置示例（desktop profile 用户层 cordis.patch.yml 片段）
+#
+# 1) 上游 provider：由官方模型管理引擎 @deepseek-ai/dsh-llm-pi-ai 声明
+#    （API 地址、协议、模型目录、自动探测都在那里配置；本例中名为 aiapi）。
+# 2) 档位映射：opus/sonnet/haiku 各自指向一个上游 provider/model。
+# 3) 判定模型（Decision Model，如 JEV / StartLux）：独立配置地址与 API Key；联调前可先保持 baseURL 为空，
+#    网关会退化为纯档位映射（固定策略语义），不影响可用性。
+#
+# 把下面的行加入 ~/.dsh/profiles/desktop/cordis.patch.yml（顶层列表）：
+
+- id: llm-model-route
+  name: "@jiangshilong/dsh-llm-model-route"
+  config:
+    route: model-route
+    displayName: ModelRoute 智能模型路由
+    tiers:
+      opus:
+        provider: aiapi
+        model: glm-5.3
+        fallbacks: []
+      sonnet:
+        provider: aiapi
+        model: glm-5.3-flash
+        fallbacks:
+          - provider: aiapi
+            model: deepseek-v4-flash
+      haiku:
+        provider: aiapi
+        model: deepseek-v4-flash
+        fallbacks: []
+    enableRouter: jev            # 启用的判定家族：jev | startlux
+    router:                      # 每个家族各一份端点配置，键为家族名
+      # —— JEV（TypeSafe System One）：联调时填写以下字段 ——
+      jev:
+        baseURL: "https://api.typesafe.ai/v1"  # 可贴基础地址或完整的 …/v1/systemone
+        # API Key 在 Models 页的面板里填（存进凭据服务），不要写进配置文件
+        model: "jev-latest"      # GET /v1/models 可列出该账号可用的模型
+        proxy: ""                # 可选：http://127.0.0.1:7897（仅判定请求）
+        timeoutMs: 20000
+        maxRequestChars: 24000
+      # —— StartLux（Bamboo Relay）结构化判定示例 ——
+      # startlux:
+      #   baseURL: https://api.bamboonode.dev/v1
+      #   model: startlux-decision-27b-autothink
+    fallbackTier: sonnet
+    relayToPrimary: true
+    auxiliary:
+      compaction: haiku
+      session-title: haiku
+    cache:
+      enabled: true
+      turnFreeze: true             # 同回合冻结：工具续跑沿用档位，保上游前缀缓存
+      memoTtlMs: 21600000
+      memoMaxEntries: 512
+      replayRewrite: true
+    log:
+      enabled: false               # 开启后写 JSONL 访问日志，便于分析路由效果
+      path: ""                     # 留空 = $DSH_HOME/logs/model-route.jsonl
+      maxBytes: 16777216           # 超过后轮转为 .1
+      previewChars: 400            # route 行记录的消息预览长度；0 = 不记内容
+    logDecisions: true
+
+# 默认模型指向网关（新会话生效；覆盖同 id 的旧行，后写胜出）：
+- id: agent-default-model
+  name: "@deepseek-ai/dsh-agent-default-model"
+  config:
+    provider: model-route
+    model: auto
