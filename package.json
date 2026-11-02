@@ -1,0 +1,17 @@
+{
+  "name": "model-route",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Cost-saving smart model routing for the DeepSeek Harness: opus/sonnet/haiku tiers, judged per turn by a decision model.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "test": "node packages/dsh-llm-model-route/test/smoke.mjs",
+    "test:panel": "node packages/dsh-client-ui-model-route/test/bundle.test.mjs",
+    "test:monitor": "node packages/dsh-model-route-monitor/test/monitor.test.mjs",
+    "test:all": "npm run test && npm run test:panel && npm run test:monitor"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
