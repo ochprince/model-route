@@ -1,0 +1,6 @@
+# The model-route panel bundle patch: inserts the client-UI plugin entry so
+# the Models page renders the gateway's configuration panel. Applied when this
+# package is listed in a profile's `dsh.profile.bundles`.
+- insert:
+    - id: client-model-route-ui
+      name: "@jiangshilong/dsh-client-ui-model-route"
