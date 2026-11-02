@@ -1,54 +1,56 @@
 # @jiangshilong/dsh-client-ui-model-route
 
-ModelRoute 智能模型路由（`@jiangshilong/dsh-llm-model-route`）的**可视化配置面板**（客户端 UI 插件）。
+**ModelRoute 网关的配置面板，渲染在 Harness 的 Models 页里。**
 
-## 是什么
+[English](README.md) | 中文
 
-在 Models 设置页的 "ModelRoute 智能模型路由" 卡片内渲染一个**精简面板**，只保留最常用配置：
+## 概述
 
-- **档位映射**：opus / sonnet / haiku 三档各自一个"提供商 + 模型"下拉对——数据来自宿主代际模型目录（`session.modelCatalog()`）中已配置 provider 的已自定义模型；**网关自身路由不作为候选项**（会形成自引用），目录外的取值（配置文件指定）仍会原样显示；
-- **判定模型**：先选家族（JEV / StartLux），然后是 baseURL、模型 ID，以及 **API Key 页面直存**（凭据服务写入，值不回显）。两个家族都是结构化判定端点（JEV 用 `/v1/systemone`，StartLux 用 `/v1/decisions`），**没有协议下拉**；密钥名随家族走（`JEV_API_KEY` / `BAMBOO_API_KEY`）；**每个家族的端点配置在 `router` 字典里各占一条**（`router.jev` / `router.startlux`）；
-- **代理（可选）**：收在卡片最底部、默认收起；只有判定请求走它。展开后可填 `http://127.0.0.1:7897`，已配置时摘要只显示目标主机（不回显账号密码）；
-- **辅助调用**：会话压缩、会话标题各自选择档位；
-- **测试**：保存按钮旁的按钮，用当前表单值（含尚未保存的修改和刚粘贴的密钥）真正跑一次判定，回显档位、置信度与耗时。
+在 `model-route` 这一行 provider 上加一张卡片：档位槽位、判定模型端点与凭据、辅助调用档位，以及一次性的判定测试。
 
-切换"判定模型"只是把表单切到另一个家族的条目——各自的地址与模型互不覆盖，首次使用为空；保存时写入 `enableRouter`，**启用的就是保存时选中的家族**。待填的 API Key 会清空——密钥本身已按家族存在凭据服务里（`JEV_API_KEY` / `BAMBOO_API_KEY`），不随表单走。
+它是可选的——只装网关、手写 YAML 也能用——而且不发明配置：卡片保存的每个字段，网关都本来就会读取。
 
-进阶配置（故障转移候选、推理档位、判定超时/上下文预算、自定义提示词、凭据引用名、决策缓存 `cache.*`、访问日志 `log.*`）不进面板：直接改 `cordis.patch.yml` 对应段。
+## 快速开始
 
-规则只有一条：选 `auto` 由判定模型判定档位；显式选 `opus` / `sonnet` / `haiku` 则精确使用该档模型，不调用判定模型。判定上下文、跨轮换模型门槛与访问日志见主包文档 `@jiangshilong/dsh-llm-model-route`。
+1. 先装网关：[`@jiangshilong/dsh-llm-model-route`](../dsh-llm-model-route/README.zh.md)。
+2. 把本目录作为 bundle 安装。
+3. 刷新 Harness 页面，打开 **Models → ModelRoute**。
 
-保存通过共享 settings 文档（`configForms`）原子写入 volatile 字段——持久化进 profile 的 `cordis.patch.yml`，loader 热更新，网关对新请求即时生效。
+## 卡片能配置什么
 
-**测试为什么需要宿主参与**：判定密钥只存在宿主的凭据服务里（对浏览器是 write-only），浏览器也无法替宿主发请求。面板因此调用宿主注册的同源路由 `POST /model-route/judge-test`（由网关插件用 `webServer.register` 注册），宿主用与真实请求同一套逻辑（同家族、同 payload、同凭据解析）跑一次判定并只返回 `{ok, tier, confidence, reason, ms}`。该路由只接受同源 JSON 请求，不写配置、不创建会话；测试文本固定为一句示例，仅用于验证端点与密钥是否连通。
+| 区域 | 写入的字段 | 说明 |
+| --- | --- | --- |
+| 档位槽位 | `tiers.{opus,sonnet,haiku}.provider` + `.model` | 候选来自当前已配置 provider 的模型目录；网关自身路由被排除，否则会自我递归 |
+| 判定端点 | `enableRouter`、`router.<family>.baseURL`、`router.<family>.model` | JEV 与 StartLux 两个家族各存一条，切换互不覆盖 |
+| 判定凭据 | 凭据 `JEV_API_KEY` / `BAMBOO_API_KEY` | 直接写入凭据服务，值不回显 |
+| 判定代理 | `router.<family>.proxy` | 只作用于判定请求 |
+| 辅助档位 | `auxiliary.compaction`、`auxiliary.session-title` | 这些调用不经过判定 |
+| 测试按钮 | — | 用表单里当前的值（含尚未保存的 key）真跑一次判定 |
 
-## 结构
+## 哪些留给 YAML
 
-| 文件 | 说明 |
-| --- | --- |
-| `lib/index.js` | 宿主半边：空 `apply`，只为让插件进入 Loader 组合 |
-| `lib/client.js` | 浏览器半边：`__ModuleLoader__` 工厂格式单文件 bundle，keyed 插槽 `settings.models.provider-card`（key = `llm-model-route`） |
+故障转移候选、推理档位、判定超时与上下文预算、自定义提示词、凭据引用名、决策缓存、访问日志，都只在配置文件里。
+见网关的[配置参考](../dsh-llm-model-route/README.zh.md#配置)。
 
-## 约束
+## 值得知道的行为
 
-- 面板按网关条目的 settingsNs（`llm-model-route`）注册；若在补丁里改了网关条目的 `id`，需同步修改 `lib/client.js` 中的 `NS` 常量。
-- 只编辑 volatile 字段；`route`、`fallbackTier` 等结构性字段仍在补丁里维护。
-- 客户端 bundle 需在宿主启动前就位（本地安装已直接提供构建产物 `lib/client.js`）。
+- 切换判定家族只是把表单切到另一个条目；保存时写入 `enableRouter`，**保存时选中的家族才会生效**。
+- 只填了 provider 的档位、或只填了一半的故障转移候选会被拒绝，不会写进半成品配置。
+- 卡片只写你改过的字段，它不管理的 YAML 段落保持原样。
+- 测试会花掉一次判定请求，用的是合成提示词，不会发送你的对话。
 
-## 安装
+## 限制
 
-本包是 bundle（`dsh.bundle.patch` 插入 `client-model-route-ui` 条目），用插件管理器安装：
+- 依赖网关包；只在那一行 provider 上渲染。
+- 候选取自 harness 的模型目录。写在 YAML 里但不在目录中的模型仍会显示，但无法从下拉里选。
+- 测试按钮需要判定端点可达。
 
-```
-plugin_manager → action: install_bundle → target: <本包绝对路径>
-```
-
-安装后刷新一次页面，Models 页的网关卡片即出现配置面板。`engines.dsh` 声明可运行的 dsh 版本范围；Harness 升级到范围外版本时该行会被自动禁用并提示，更新范围后重装即可。
-
-## 测试
+## 开发
 
 ```bash
 node test/bundle.test.mjs
 ```
 
-以桩模块驱动工厂，覆盖注册契约、卡片守卫、保存计划（嵌套路径 set/unset、档位整组校验、默认值回落、按家族的凭据引用选择）、各家族条目的写入与清理，以及测试请求对草稿的合并。
+## 许可证
+
+Apache-2.0，见 [LICENSE](../../LICENSE)。

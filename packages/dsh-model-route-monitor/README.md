@@ -1,25 +1,26 @@
----
-description: "Companion right-sidebar dashboard for ModelRoute: live per-tier usage across all sessions and cost economics versus routing everything through Opus."
-kind: "package-reference"
----
-
 # @jiangshilong/dsh-model-route-monitor
 
+**Live spend, savings, and routing decisions for the ModelRoute gateway.**
+
 English | [中文](README.zh.md)
+
+## Summary
 
 A companion to [`@jiangshilong/dsh-llm-model-route`](../dsh-llm-model-route/README.md). It registers a **ModelRoute cost** tab in the Harness right sidebar and reports, live:
 
 - requests, sessions, input/output/cache-read tokens for `opus`, `sonnet`, and `haiku`, with the actual serving model on each tier card (`+N` when failover used more than one);
 - actual cost from per-tier input, output, and cache-read unit prices;
 - the all-Opus baseline for the same tokens, savings, and savings rate;
-- session ranking, recent judge/route decisions, savings rate, and 1h/24h/7d/all windows;
+- session ranking, the last 24 turns with their judgment trail, delegation-time judgments, savings rate, and 1h/24h/7d/all windows;
 - an inline editor for the three unit prices, re-pricing history immediately.
 
-## Open it
+## Quick start
 
-After installation, refresh the Harness page once so the browser half registers the sidebar tab and header button.
+1. Install the gateway first: [`@jiangshilong/dsh-llm-model-route`](../dsh-llm-model-route/README.md).
+2. Install this directory as a bundle.
+3. Refresh the Harness page once so the browser half registers the sidebar tab and the header button.
 
-Install this directory as a bundle. Open the monitor with the chart icon in the Session header, or from the right-sidebar guide: **ModelRoute cost monitor**. The tab can be docked, split, floated, or shown fullscreen like any other sidebar page.
+Open the monitor with the chart icon in the Session header, or from the right-sidebar guide: **ModelRoute cost monitor**. The tab can be docked, split, floated, or shown fullscreen like any other sidebar page.
 
 ## Layout and one-click config
 
@@ -27,7 +28,7 @@ The panel is now a single-column, scrollable view: a fixed summary header above 
 
 Prices default to **Auto**: the monitor reads its bundled `data/prices.json`, resolves the current tier models, and applies the new prices on the next two-second refresh when a gateway slot changes. No profile edit is needed. **Edit prices** sits in the **Tier usage** header and opens an inline panel with the **Auto / Manual** switch as its first row.
 
-The hero card shows one number only — the savings amount — and the three figures that matter beside it (requests, sessions, savings rate) sit in the strip directly below, so nothing is stated twice. Recent decisions are grouped by judge/route, not one row per model call; a row's clock follows the turn's newest completed call, so a running turn keeps advancing at the top, and a breathing "In flight" dot appears beside the time range while a gateway call is streaming; the right edge shows confidence (labelled with the tier the judge originally chose when a deterministic escalation raised it), and clicking a row expands the user-message preview, judge model, reason, all three tier probabilities, the top-two margin, escalated-from tier/reason, aggregate cost, and tokens.
+The hero card shows one number only — the savings amount — and the three figures that matter beside it (requests, sessions, savings rate) sit in the strip directly below, so nothing is stated twice. Recent decisions are grouped by turn, not one row per model call; a row's clock follows the turn's newest completed call, so a running turn keeps advancing at the top, and a breathing "In flight" dot appears beside the time range while a gateway call is streaming. The right edge shows the judge's confidence for that turn. Clicking a row expands the user-message preview, the judge model, the reason, all three tier probabilities, the top-two margin, the turn's full judgment trail (each re-judgment with the boundary that triggered it), aggregate cost, and tokens.
 
 The panel opens in the mode currently in force. In **Auto** it only explains where the prices come from; choose **Manual** to reveal the three tier rows, **Save prices** becomes available immediately, and saving writes the tier prices plus `autoPrices: false` in one write, so the values take effect and history is re-priced at once. Manual prices are kept when you switch back to Auto, so the same values return the moment you pick **Manual** again; a manual set that was never filled in is seeded from the auto-resolved prices instead of opening on zeros. The file icon in the page title bar still opens the profile's `cordis.patch.yml` after ensuring a complete `config.prices` template on the `model-route-monitor` row, for direct YAML edits.
 
@@ -114,3 +115,7 @@ node --check lib/client.js
 ```
 
 `lib/model.js` is the dependency-free catalog/matching and aggregation model; `lib/index.js` reads the bundled catalog and serves the Host collector/snapshot route; `lib/client.js` is the React sidebar page, guide entry, and header button; `data/prices.json` is the captured price catalog.
+
+## License
+
+Apache-2.0. See [LICENSE](../../LICENSE).

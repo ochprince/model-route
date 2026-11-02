@@ -1,9 +1,6 @@
----
-description: "ModelRoute：DeepSeek Harness 的智能模型路由。把 opus/sonnet/haiku 三个档位映射到任意上游模型，判定只发生在三个节点：新用户回合、历史压缩重建、委派子智能体前。"
-kind: "package-reference"
----
+# @jiangshilong/dsh-llm-model-route
 
-# @jiangshilong/dsh-llm-model-route（ModelRoute · 智能模型路由）
+**DeepSeek Harness 的智能模型路由：每轮一次判定，决定用 haiku、sonnet 还是 opus。**
 
 [English](README.md) | 中文
 
@@ -76,7 +73,6 @@ route_tier(task="重构整个调度层", context="只改 crates/scheduler，保�
 - **逐回合自动选档**：简单任务走便宜档，复杂任务走强档，不用手动切模型。
 - **档位自由映射**：三档各自指向任意上游模型，每档还能配有序的故障转移候选。
 - **贴合上游缓存**：同一回合内（工具续跑）冻结档位；完全相同的请求前缀复用上次决策，不重复判定。
-- **换模型有门槛**：跨轮换档位要求判定够自信或跨度够大，避免每轮换模型把前缀缓存打掉。
 - **判定结果即最终档位**：不设隐式升档或换档门槛，升、降都按判定执行。
 - **优雅降级**：判定失败、超时或判定为"无合适档位"时回退到 `fallbackTier`，不会让请求失败。
 - **辅助调用直连**：会话压缩、会话标题这类调用直接指定档位，不经过判定模型。
@@ -234,7 +230,7 @@ jq -r 'select(.kind=="route" and .error==null) | .upstream.model' ~/.dsh/logs/mo
 
 日志写入失败只告警一次，不影响请求；文件里只有元数据与被截断的消息预览。最近判定按 `sessionId + turn` 聚合：同一轮的重复 route 记录只显示一行，preview 取该轮最早的非空值。
 
-## 已知限制
+## 限制
 
 - 每轮首次请求会多一次判定调用（少量时延），续跑由冻结与备忘消除。
 - 判定结果直接生效，没有兜底校正；判定错误只会在下一轮被纠正，代价是一次重试。
@@ -242,6 +238,17 @@ jq -r 'select(.kind=="route" and .error==null) | .upstream.model' ~/.dsh/logs/mo
 - 上下文预算按字符估算而非 token；预算不足时先丢最旧的用户消息，当前请求本身不裁剪。
 - 会话识别依赖 `options.sessionId`；缺失时只有前缀备忘生效。
 
+## 开发
+
+```bash
+node test/smoke.mjs        # 判定核心，不需要 Harness 运行时
+node test/adapter.test.mjs # 真实 harness LLM seam（需要应用内置的 @deepseek-ai 对等包）
+```
+
 ## 版本兼容
 
 `package.json` 用 `engines.dsh` 声明可运行的 Harness 版本（当前 `>=0.2.0-rc.2 <0.3.0`）。跨出范围时启动会提示并自动禁用本插件，不会崩溃：更新本包后重新安装即可。
+
+## 许可证
+
+Apache-2.0，见 [LICENSE](../../LICENSE)。

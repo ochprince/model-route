@@ -1,9 +1,6 @@
----
-description: "ModelRoute for the DeepSeek Harness: smart model routing across opus/sonnet/haiku tiers. The judge decides at exactly three nodes: a new user turn, a rebuilt (compacted) history, and delegation through route_tier."
-kind: "package-reference"
----
+# @jiangshilong/dsh-llm-model-route
 
-# @jiangshilong/dsh-llm-model-route (ModelRoute · smart model routing)
+**Smart model routing for the DeepSeek Harness: one judge call per turn decides haiku, sonnet, or opus.**
 
 English | [中文](README.zh.md)
 
@@ -175,12 +172,6 @@ Anything the panel does not expose goes straight into the profile's `cordis.patc
 | `turnFreeze` | `true` | Keep one tier for the whole turn |
 | `memoTtlMs` / `memoMaxEntries` | 6 hours / `512` | Prefix memo TTL and capacity |
 | `replayRewrite` | `true` | Rebase gateway-produced assistant history onto the upstream route, preserving native replay |
-| `switchConfidence` | `0.7` | Minimum confidence to change tier across turns |
-| `switchGap` | `2` | A gap this wide (haiku↔opus) changes tier regardless of confidence |
-
-The judge still decides first; the floor only intervenes when the current turn clearly rejects or repeats an attempt: it raises to at least one tier above the previous turn, and keeps the top tier instead of downgrading. The judge request's `state` also carries `repetition` (`previous_tier`, `explicit_failure`, `same_intent`, `tool_errors`, ...), so JEV can treat the failed attempt as evidence instead of judging only the latest sentence.
-
-These thresholds are configuration-file only for now; the Models panel writes only the fields it actually edits, so saving it does not overwrite them.
 
 ### Confidence and the three-tier distribution
 
@@ -228,7 +219,7 @@ Common issues:
 
 Log write failures never fail a request and are reported once; the file holds metadata and truncated previews only. Recent decisions collapse to one row per `sessionId + turn`; a blank later preview never hides the first non-empty one.
 
-## Known limitations
+## Limits
 
 - The first request of each turn pays one extra judge call (a little latency); continuations are covered by the freeze and the memo.
 - The verdict takes effect directly, with no corrective layer; a wrong judgment is only corrected on the next turn, at the cost of one retry.
@@ -236,6 +227,17 @@ Log write failures never fail a request and are reported once; the file holds me
 - The context budget is counted in characters, not tokens; when it is tight the oldest user messages are dropped, never the current request.
 - Session recognition relies on `options.sessionId`; without it only the prefix memo applies.
 
+## Development
+
+```bash
+node test/smoke.mjs        # decision core, no Harness runtime needed
+node test/adapter.test.mjs # the real harness LLM seam (needs the app's @deepseek-ai peers)
+```
+
 ## Version compatibility
 
 `package.json` declares the supported Harness range in `engines.dsh` (currently `>=0.2.0-rc.2 <0.3.0`). Outside that range the Harness reports the mismatch and disables the entry instead of crashing: update the package and reinstall.
+
+## License
+
+Apache-2.0. See [LICENSE](../../LICENSE).

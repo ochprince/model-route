@@ -8,7 +8,7 @@ A smart model-routing plugin for the [DeepSeek Harness](https://github.com/deeps
 one small judge call per turn decides `haiku` / `sonnet` / `opus`, so routine work stops
 paying premium-model prices.
 
-[Quick start](#quick-start-2-minutes) · [How it saves money](#how-it-saves-money) · [How it works](#how-it-works) · [Configuration](#configuration) · [中文](README.zh-CN.md)
+[Quick start](#quick-start-2-minutes) · [How it saves money](#how-it-saves-money) · [How it works](#how-it-works) · [Configuration](#configuration) · [中文](README.zh.md)
 
 </div>
 
